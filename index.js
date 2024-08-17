@@ -34,11 +34,60 @@ async function run() {
 
     //  for adding data to db
     app.post("/items", async (req, res) => {
-      const data = await req.body;
-      // console.log(data);
+      const {
+        productName,
+        productImage,
+        brandName,
+        description,
+        price,
+        category,
+        creationTime,
+      } = await req.body;
+
+      const data = {
+        productName,
+        productImage,
+        brandName,
+        description,
+        price: parseInt(price),
+        category,
+        creationTime
+      }
+      
       const result = await itemsCollection.insertOne(data);
       res.send(result);
     });
+
+    // app.get("/sort", async(req, res)=>{
+    //   const {system} = req.query
+    //   console.log(system)
+
+    //   const queryObj = {}
+    //   if(system === "lowToHigh"){
+    //     queryObj.price = 1
+    //   }
+    //   if(system === "highToLow"){
+    //     queryObj.price = -1
+    //   }
+    //   if(system ==="latest"){
+    //     queryObj.creationTime = 1
+    //   }
+    // console.log("queryObj", queryObj)
+    //   const result = await itemsCollection.find().sort({price: 1}).toArray();
+    //   res.send(result)
+
+    // })
+
+    app.get("/sort", async(req, res)=>{
+      const result = await itemsCollection.find().sort({price: 1}).toArray()
+      res.send(result)
+    })
+
+    app.get("/countNumberOfData", async(req,res)=>{
+       const result = await itemsCollection.countDocuments()
+      //  console.log(result)
+       res.send({counts: result})
+    })
 
     app.get("/filters", async (req, res) => {
        const result = await itemsCollection.find().toArray()
@@ -52,7 +101,7 @@ async function run() {
       const numPage = parseInt(page)
       const numSize = parseInt(size)
 
-      console.log(numPage, numSize)
+      // console.log(numPage, numSize)
       let query = {};
       
       if (category) {
