@@ -92,6 +92,14 @@ async function run() {
       res.send({ counts: result });
     });
 
+    app.get("/search-data", async(req,res)=>{
+      const prodName = req.query.name
+      console.log(prodName)
+      const query = { name: { $regex: prodName} };
+      const result = await itemsCollection.find(query).toArray()
+      res.send(result)
+    })
+
     app.get("/filters", async (req, res) => {
       const result = await itemsCollection.find().toArray();
       const categories = [...new Set(await result.map((res) => res.category))];
