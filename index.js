@@ -41,7 +41,7 @@ async function run() {
         description,
         price,
         category,
-        creationTime,
+        // creationTime,
       } = await req.body;
 
       const data = {
@@ -51,59 +51,62 @@ async function run() {
         description,
         price: parseInt(price),
         category,
-        creationTime
-      }
-      
+        creationTime: new Date(),
+      };
+
       const result = await itemsCollection.insertOne(data);
       res.send(result);
     });
 
-    // app.get("/sort", async(req, res)=>{
-    //   const {system} = req.query
-    //   console.log(system)
+    app.get("/sort", async (req, res) => {
+      const { system } = req.query;
 
-    //   const queryObj = {}
-    //   if(system === "lowToHigh"){
-    //     queryObj.price = 1
-    //   }
-    //   if(system === "highToLow"){
-    //     queryObj.price = -1
-    //   }
-    //   if(system ==="latest"){
-    //     queryObj.creationTime = 1
-    //   }
-    // console.log("queryObj", queryObj)
-    //   const result = await itemsCollection.find().sort({price: 1}).toArray();
-    //   res.send(result)
+      const queryObj = {};
+      if (system === "lowToHigh") {
+        const result = await itemsCollection
+          .find()
+          .sort({ price: 1 })
+          .toArray();
+        res.send(result);
+      }
+      if (system === "highToLow") {
+        const result = await itemsCollection
+          .find()
+          .sort({ price: -1 })
+          .toArray();
+        res.send(result);
+      }
 
-    // })
+      if (system === "latest") {
+        const result = await itemsCollection
+          .find()
+          .sort({ creationTime: -1 })
+          .toArray();
+        res.send(result);
+      }
+    });
 
-    app.get("/sort", async(req, res)=>{
-      const result = await itemsCollection.find().sort({price: 1}).toArray()
-      res.send(result)
-    })
-
-    app.get("/countNumberOfData", async(req,res)=>{
-       const result = await itemsCollection.countDocuments()
+    app.get("/countNumberOfData", async (req, res) => {
+      const result = await itemsCollection.countDocuments();
       //  console.log(result)
-       res.send({counts: result})
-    })
+      res.send({ counts: result });
+    });
 
     app.get("/filters", async (req, res) => {
-       const result = await itemsCollection.find().toArray()
-       const categories = [...new Set(await result.map((res) => res.category))]
-       const brands = [...new Set(await result.map((res) => res.brandName))];
-       res.send({categories, brands})
+      const result = await itemsCollection.find().toArray();
+      const categories = [...new Set(await result.map((res) => res.category))];
+      const brands = [...new Set(await result.map((res) => res.brandName))];
+      res.send({ categories, brands });
     });
 
     app.get("/items", async (req, res) => {
       const { category, brand, page, size } = req.query;
-      const numPage = parseInt(page)
-      const numSize = parseInt(size)
+      const numPage = parseInt(page);
+      const numSize = parseInt(size);
 
       // console.log(numPage, numSize)
       let query = {};
-      
+
       if (category) {
         query.category = category;
       }
@@ -111,7 +114,11 @@ async function run() {
         query.brandName = brand;
       }
 
-      const result = await itemsCollection.find(query).skip(numPage * numSize).limit(numSize).toArray();
+      const result = await itemsCollection
+        .find(query)
+        .skip(numPage * numSize)
+        .limit(numSize)
+        .toArray();
       res.send(result);
     });
   } finally {
