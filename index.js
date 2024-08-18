@@ -1,5 +1,5 @@
 const express = require("express");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 var cors = require("cors");
 const port = process.env.PORT || 3000;
@@ -37,6 +37,7 @@ async function run() {
       const {
         productName,
         productImage,
+        rating,
         brandName,
         description,
         price,
@@ -46,6 +47,7 @@ async function run() {
       const data = {
         productName,
         productImage,
+        rating,
         brandName,
         description,
         price: parseInt(price),
@@ -74,7 +76,6 @@ async function run() {
 
     app.get("/search-data", async (req, res) => {
       const name = req.query.name;
-      console.log(name);
 
       const query = { productName: { $regex: name, $options: "i" } };
       const result = await itemsCollection.find(query).toArray();
@@ -122,6 +123,17 @@ async function run() {
         .toArray();
       res.send(result);
     });
+
+    app.get("/details/:id", async(req, res)=>{
+      const id = req.params.id
+      const query ={
+        _id : new ObjectId(id)
+      }
+      const result = await itemsCollection.findOne(query)
+      res.send(result)
+    })
+
+
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
