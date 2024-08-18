@@ -60,7 +60,10 @@ async function run() {
     });
 
     app.get("/countNumberOfData", async (req, res) => {
-      const { category, brand } = req.query;
+      const { category, brand, minPrice, maxPrice } = req.query;
+      const minPr = parseInt(minPrice);
+      const maxPr = parseInt(maxPrice);
+
       let query = {};
 
       if (category) {
@@ -68,6 +71,14 @@ async function run() {
       }
       if (brand) {
         query.brandName = brand;
+      }
+
+      if (minPr && maxPr) {
+        query.price = { $gte: Number(minPr), $lte: Number(maxPr) };
+      } else if (minPr) {
+        query.price = { $gte: Number(minPr) };
+      } else if (maxPr) {
+        query.price = { $lte: Number(maxPr) };
       }
 
       const result = await itemsCollection.countDocuments(query);
@@ -90,9 +101,12 @@ async function run() {
     });
 
     app.get("/items", async (req, res) => {
-      const { category, brand, page, size, sort } = req.query;
+      const { category, brand, page, size, sort, minPrice, maxPrice } =
+        req.query;
       const numPage = parseInt(page);
       const numSize = parseInt(size);
+      const minPr = parseInt(minPrice);
+      const maxPr = parseInt(maxPrice);
 
       let sortQuery = {};
       let query = {};
@@ -104,6 +118,14 @@ async function run() {
       if (brand) {
         query.brandName = brand;
       }
+      if (minPr && maxPr) {
+        query.price = { $gte: Number(minPr), $lte: Number(maxPr) };
+      } else if (minPr) {
+        query.price = { $gte: Number(minPr) };
+      } else if (maxPr) {
+        query.price = { $lte: Number(maxPr) };
+      }
+
       // for sorting
       if (sort === "lowToHigh") {
         sortQuery.price = 1;
@@ -124,16 +146,14 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/details/:id", async(req, res)=>{
-      const id = req.params.id
-      const query ={
-        _id : new ObjectId(id)
-      }
-      const result = await itemsCollection.findOne(query)
-      res.send(result)
-    })
-
-
+    app.get("/details/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = {
+        _id: new ObjectId(id),
+      };
+      const result = await itemsCollection.findOne(query);
+      res.send(result);
+    });
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
