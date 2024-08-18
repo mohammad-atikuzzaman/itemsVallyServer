@@ -41,7 +41,6 @@ async function run() {
         description,
         price,
         category,
-        // creationTime,
       } = await req.body;
 
       const data = {
@@ -56,34 +55,6 @@ async function run() {
 
       const result = await itemsCollection.insertOne(data);
       res.send(result);
-    });
-
-    app.get("/sort", async (req, res) => {
-      const { system } = req.query;
-
-      const queryObj = {};
-      if (system === "lowToHigh") {
-        const result = await itemsCollection
-          .find()
-          .sort({ price: 1 })
-          .toArray();
-        res.send(result);
-      }
-      if (system === "highToLow") {
-        const result = await itemsCollection
-          .find()
-          .sort({ price: -1 })
-          .toArray();
-        res.send(result);
-      }
-
-      if (system === "latest") {
-        const result = await itemsCollection
-          .find()
-          .sort({ creationTime: -1 })
-          .toArray();
-        res.send(result);
-      }
     });
 
     app.get("/countNumberOfData", async (req, res) => {
@@ -117,22 +88,34 @@ async function run() {
     });
 
     app.get("/items", async (req, res) => {
-      const { category, brand, page, size } = req.query;
+      const { category, brand, page, size, sort } = req.query;
       const numPage = parseInt(page);
       const numSize = parseInt(size);
 
-      // console.log(numPage, numSize)
+      let sortQuery = {};
       let query = {};
 
+      // for filter
       if (category) {
         query.category = category;
       }
       if (brand) {
         query.brandName = brand;
       }
+      // for sorting
+      if (sort === "lowToHigh") {
+        sortQuery.price = 1;
+      }
+      if (sort === "highToLow") {
+        sortQuery.price = -1;
+      }
+      if (sort === "latest") {
+        sortQuery.creationTime = -1;
+      }
 
       const result = await itemsCollection
         .find(query)
+        .sort(sortQuery)
         .skip(numPage * numSize)
         .limit(numSize)
         .toArray();
