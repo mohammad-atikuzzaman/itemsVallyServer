@@ -87,18 +87,27 @@ async function run() {
     });
 
     app.get("/countNumberOfData", async (req, res) => {
-      const result = await itemsCollection.countDocuments();
-      //  console.log(result)
+      const { category, brand } = req.query;
+      let query = {};
+
+      if (category) {
+        query.category = category;
+      }
+      if (brand) {
+        query.brandName = brand;
+      }
+
+      const result = await itemsCollection.countDocuments(query);
       res.send({ counts: result });
     });
 
-    app.get("/search-data", async(req,res)=>{
-      const prodName = req.query.name
-      console.log(prodName)
-      const query = { name: { $regex: prodName} };
-      const result = await itemsCollection.find(query).toArray()
-      res.send(result)
-    })
+    app.get("/search-data", async (req, res) => {
+      const prodName = req.query.name;
+      console.log(prodName);
+      const query = { name: { $regex: prodName } };
+      const result = await itemsCollection.find(query).toArray();
+      res.send(result);
+    });
 
     app.get("/filters", async (req, res) => {
       const result = await itemsCollection.find().toArray();
