@@ -73,9 +73,10 @@ async function run() {
     });
 
     app.get("/search-data", async (req, res) => {
-      const prodName = req.query.name;
-      console.log(prodName);
-      const query = { name: { $regex: prodName } };
+      const name = req.query.name;
+      console.log(name);
+
+      const query = { productName: { $regex: name, $options: "i" } };
       const result = await itemsCollection.find(query).toArray();
       res.send(result);
     });
