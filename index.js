@@ -12,8 +12,9 @@ app.use(
   })
 );
 
-const uri =
-  `mongodb+srv://${process.env.DBuser}:${process.env.DBpass}@cluster0.tyigyp7.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+const uri = `mongodb+srv://itemsVally:akash123@cluster0.tyigyp7.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+// const uri =
+//   `mongodb+srv://${process.env.DBuser}:${process.env.DBpass}@cluster0.tyigyp7.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -65,19 +66,20 @@ async function run() {
     });
 
     app.get("/countNumberOfData", async (req, res) => {
-      const { category, brand, minPrice, maxPrice } = req.query;
+      const { category, brand, minPrice, maxPrice, searchQuery } = req.query;
       const minPr = parseInt(minPrice);
       const maxPr = parseInt(maxPrice);
 
       let query = {};
-
+      // filter by category
       if (category) {
         query.category = category;
       }
+      // filter by brand
       if (brand) {
         query.brandName = brand;
       }
-
+      // filter by price range
       if (minPr && maxPr) {
         query.price = { $gte: Number(minPr), $lte: Number(maxPr) };
       } else if (minPr) {
@@ -85,17 +87,13 @@ async function run() {
       } else if (maxPr) {
         query.price = { $lte: Number(maxPr) };
       }
+      // filter by search value
+      if (searchQuery) {
+        query.productName = { $regex: searchQuery, $options: "i" };
+      }
 
       const result = await itemsCollection.countDocuments(query);
       res.send({ counts: result });
-    });
-
-    app.get("/search-data", async (req, res) => {
-      const name = req.query.name;
-
-      const query = { productName: { $regex: name, $options: "i" } };
-      const result = await itemsCollection.find(query).toArray();
-      res.send(result);
     });
 
     app.get("/filters", async (req, res) => {
@@ -106,8 +104,16 @@ async function run() {
     });
 
     app.get("/items", async (req, res) => {
-      const { category, brand, page, size, sort, minPrice, maxPrice } =
-        req.query;
+      const {
+        category,
+        brand,
+        page,
+        size,
+        sort,
+        minPrice,
+        maxPrice,
+        searchQuery,
+      } = req.query;
       const numPage = parseInt(page);
       const numSize = parseInt(size);
       const minPr = parseInt(minPrice);
@@ -117,12 +123,15 @@ async function run() {
       let query = {};
 
       // for filter
+      // filter data by category
       if (category) {
         query.category = category;
       }
+      // filter data by brand name
       if (brand) {
         query.brandName = brand;
       }
+      // filter for sort data by price range
       if (minPr && maxPr) {
         query.price = { $gte: Number(minPr), $lte: Number(maxPr) };
       } else if (minPr) {
@@ -130,7 +139,10 @@ async function run() {
       } else if (maxPr) {
         query.price = { $lte: Number(maxPr) };
       }
-
+      // filter for searching data
+      if (searchQuery) {
+        query.productName = { $regex: searchQuery, $options: "i" };
+      }
       // for sorting
       if (sort === "lowToHigh") {
         sortQuery.price = 1;
@@ -169,7 +181,7 @@ run().catch(console.dir);
 // ____________________________________________________________________
 
 app.get("/", (req, res) => {
-  res.send("Hello World!");
+  res.send("Hello World! form itemsVally");
 });
 
 app.listen(port, () => {
